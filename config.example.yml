@@ -1,0 +1,214 @@
+# 基本配置
+
+# 网课平台选择
+#   chaoxing: 超星学习通 (默认, 完整支持)
+#   icve:     智慧职教 (zjy2.icve.com.cn / 职教云 v2, 支持视频/文档任务点自动完成)
+#   zhihuishu: 知到 / 智慧树 (token/cookie 登录 + 课程读取 + 视频刷课心跳)
+#   mooc:      中国大学 MOOC (icourse163.org, 实验性支持)
+platform: chaoxing
+
+# 是否使用图形登录窗口 (弹窗输入账号/token)
+#   true:  弹出图形登录界面 (需 WebView2, Win10/11 自带)
+#   false: 使用终端登录 (兼容性最好)
+# 图形窗异常时会自动回退终端登录
+login_gui: true
+
+# 是否检查更新 (true=启动时检查版本, 发现新版本会弹强制更新窗; false=跳过)
+# 自己打包/本地修改版本时建议设为 false
+check_update: false
+
+# 智慧职教 (icve) 配置 (platform: icve 时生效)
+icve:
+  # 登录凭证 access_token (可选): 因职教云登录带阿里云滑块, 需从浏览器手动导出
+  #   留空则程序启动时提示粘贴 (推荐); 填入则作为"存档"直接登录, 免每次粘贴
+  #   获取: 登录 zjy2.icve.com.cn -> F12 -> 应用/Application -> Cookie 找 Token,
+  #         或任一 prod-api 请求头 Authorization: Bearer 后那串 (eyJ 开头)
+  access_token: ""
+  # 相邻任务点上报间隔秒数 (防风控)
+  wait: 3.0
+  # 演练模式: true=只显示将完成的任务点不实际上报; false=真实完成 (会修改学习进度)
+  dry_run: false
+
+# 知到 / 智慧树 配置 (platform: zhihuishu 时生效)
+zhihuishu:
+  # 登录凭证 token/cookie (可选): 知到网页登录带滑块, 建议浏览器手动登录后复制凭证。
+  #   留空则启动时弹出 Tide 图形登录界面输入。
+  #   获取: 登录 onlineweb.zhihuishu.com -> F12 -> 应用/存储 或 网络请求中复制可用 cookie/token。
+  access_token: ""
+  cookie: ""
+  # 可选: 某门课学习页链接或链接里的 recruitAndCourseId。
+  #   留空时, Tide 会在知到模式启动后要求输入课程入口。
+  study_url: ""
+  recruit_and_course_id: ""
+  # 每次心跳之间的实际等待秒数 (防风控)
+  wait: 3.0
+  # 每次心跳累加的"视频秒"步长 (越大心跳越少、墙钟越短)
+  heartbeat_step: 60
+  # 演练模式: true=只列出将刷的视频不实际提交 (验证链路用); false=真实提交学习进度 (不可逆!)
+  dry_run: true
+
+# 是否开启多会话模式
+multi_session: true
+# 是否开启姓名手机号打码
+mask_acc: true
+# TUI 最大显示高度 null: 自适应高度
+tui_max_height: 25
+# 尝试拉取预先上传的人脸图片
+fetch_uploaded_face: true
+# 会话存档路径
+session_path: session/
+# 日志文件路径
+log_path: logs/
+# 试题导出路径
+export_path: export/
+# 人脸图片路径
+face_image_path: faces/
+
+# --------------------
+
+# 任务执行器配置
+# 视频
+video:
+  # 使能
+  enable: true
+  # 完成等待时间
+  wait: 15
+  # 倍速
+  speed: 1.0
+  # 视频播放汇报率 (没事别改)
+  report_rate: 58
+  # 秒刷模式: true=一次性上报完整时长 (极易触发风控验证码, 需配合 captcha_manual), false=模拟正常播放
+  super_fast: false
+  # 并发刷课数: >1 时启用多视频并发 (实测 2-3 较安全, 10 会触发大量验证码)
+  concurrent: 3
+  # 狂暴模式上报节奏: gap=间隔秒, step=每次增量秒 (默认 10/20 = 2:1 比值, 服务器接受上限)
+  gap: 10
+  step: 20
+
+# 作业 (章节测验)
+work:
+  # 使能
+  enable: true
+  # 是否进行试题导出 可以将 `enable`设置为 false, 从而进行 dry run
+  export: false
+  # 完成等待时间
+  wait: 15
+  # 未匹配选项是否随机选择
+  fallback_fuzzer: false
+  # 作答失败后是否保存
+  fallback_save: true
+
+# 文档
+document:
+  # 使能
+  enable: true
+  # 完成等待时间
+  wait: 15
+
+# 考试
+exam:
+  # 未匹配选项是否随机选择
+  fallback_fuzzer: false
+  # 提交前延迟时间
+  persubmit_delay: 15
+  # 是否需要交互式确认交卷 自动交卷: false 手动确认: true
+  confirm_submit: true
+
+# --------------------
+
+# 会话 / 防风控配置 (可整块省略, 省略时使用下方默认值)
+session:
+  # 相邻请求最小间隔秒数 (拟人化节流, 防风控核心), 越大越安全但越慢
+  request_interval: 0.8
+  # 请求间隔随机抖动上限秒数, 打破固定频率特征, 实际间隔 = interval + [0, jitter) 随机值
+  request_jitter: 0.6
+  # 命中验证码/人脸风控后的额外冷却秒数, 避免解完立刻重发再次触发 (验证码风暴)
+  captcha_cooldown: 30.0
+  # 验证码最大重试次数
+  captcha_max_retry: 6
+  # 连接错误最大重试次数
+  request_max_retry: 5
+  # 连接重试间隔基准秒数 (采用指数退避: 第 n 次约 retry_delay * 2^(n-1))
+  retry_delay: 5.0
+
+# --------------------
+
+# 搜索器选择 (可同时使用多个搜索器, 以 yaml 语法中 list 格式添加, `type`字段决定搜索器类型)
+# 可用的搜索器有: restApiSearcher jsonFileSearcher sqliteSearcher enncySearcher cxSearcher LemonSearcher OpenAISearcher
+searchers: null
+  # 本地 JSON 数据库搜索器 (key为题, value为答案)
+  # - type: jsonFileSearcher
+  #   file_path: "questions.json"  # 数据库文件路径
+
+  # REST API 在线搜题
+  # - type: restApiSearcher
+  #   url: "http://10.50.9.10:8088/question/search"  # API URL 请进行替换
+  #   method: "POST"  # 请求方式
+  #   q_field: "question"  # 题目文本参数
+  #   o_field: null  # 选项文本参数 (可选)  用`#`分隔数据, 用来进一步匹配答案 (格式：选项A#选项B#选项C) 
+  #   headers:  # 自定义请求头 (可选) 使用 yaml 的 k-v 语法填写
+  #     # eg: Authorization: 'xxx'
+  #   ext_params: # 自定义扩展请求参数 (可选) 使用 yaml 的 k-v 语法填写
+  #     # eg: Token: 'xxx'
+  #   a_field: "$.data"  # 返回参数 使用 JSONPath 语法进行查询
+
+  # Json API 在线搜题
+  # - type: JsonApiSearcher
+  #   url: "http://10.50.9.10:8088/question/search"  # API URL 请进行替换
+  #   q_field: "question"  # 题目参数名称
+  #   o_field: null  # 选项参数名称 (可选)  填写为用`#`分隔数据, 用来进一步匹配答案 (格式：选项A#选项B#选项C) 不填为{"A":"xxx","B":"xxx","C":"xxx","D":"xxx"}
+  #   headers:  # 自定义请求头 (可选) 使用 yaml 的 k-v 语法填写
+  #     # eg: Authorization: 'xxx'
+  #   ext_params: # 自定义扩展请求参数 (可选) 使用 yaml 的 k-v 语法填写
+  #     # eg: Token: 'xxx'
+  #   a_field: "$.data"  # 返回参数 使用 JSONPath 语法进行查询
+
+  # 本地 sqlite 数据库搜索器
+  # - type: sqliteSearcher
+  #   file_path: "questions.db"  # 数据库文件路径
+  #   table: "question"  # 表名
+  #   req_field: "question"  # 请求字段
+  #   rsp_field: "answer"  # 返回字段
+
+  # Enncy 题库搜索器，使用前请注册 https://tk.enncy.cn/
+  # - type: enncySearcher
+  #   token: "xxx"  # Enncy 题库 Token
+
+  # 网课小工具(Go题)题库搜索器，使用前请获取Token https://cx.icodef.com/1-UserGuide/1-6-gettoken.html#%E8%8E%B7%E5%8F%96token
+  # - type: cxSearcher
+  #   token: "xxx"  # 网课小工具(Go题)题库 Token
+
+  # 题库海搜索源， 暂时可不用token 如若搜索失败 https://afdian.net/a/jiaoyu666 购买token
+  # - type: TiKuHaiSearcher
+  #   token: ***
+
+  # 冷月题库, 免费限制4秒一次请求
+  # - type: LyCk6Searcher
+  #   token: ***
+
+  # Muke题库
+  # - type: MukeSearcher
+
+  # 柠檬题库搜索器，使用前请注册 https://www.lemtk.xyz 获取token
+  # - type: LemonSearcher
+  #   token: "xxx"
+
+  # ChatGPT 在线答题，可以考虑使用超高性价比新兴国产开源大模型 [DeepSeek](https://platform.deepseek.com/docs)
+  # - type: OpenAISearcher
+  #   base_url: "https://api.openai.com/v1/" # API URL
+  #   api_key: "sk-xxx" # API Key
+  #   model: "gpt-3.5-turbo" # 使用的模型型号
+  #   system_prompt: "你是一位乐于回答问题的专家，每为用户回答一道问题你都会开心地获得5美元小费，对于用户提出的每一道问题，你只需要给出答案，不要输出任何其他的内容。\n对于判断题，只需回复对/错。"
+  #   prompt: "请回答下这个{type}：\n{value}\n{options}" 
+  # # {type} ：题目类型 (单选题、多选题 等等)
+  # # {value}：题干
+  # # {options}：选项文本（eg:"选项：\nA. assurance;B. insurance;C. requirement;D. issure"），如果题目没有选项（如填空题），则为空
+
+  # DeepSeek 在线答题器 (国产大模型, 性价比高, 无需题库)
+  # - type: DeepSeekSearcher
+  #   api_key: "sk-你的DeepSeek密钥"  # 在 https://platform.deepseek.com/api_keys 获取
+  #   base_url: "https://api.deepseek.com"  # DeepSeek API 地址 (默认即可)
+  #   model: "deepseek-chat"  # 模型: deepseek-chat 或 deepseek-reasoner
+  #   temperature: 0.3  # 温度参数, 越低越稳定 (0.0-1.0)
+  #   system_prompt: "你是一位精通各学科知识的答题专家。用户会给你一道题目，请直接给出答案，不要输出任何其他内容。\n对于单选题，只输出选项字母（如：A）。\n对于多选题，只输出选项字母，用逗号分隔（如：A,B,C）。\n对于判断题，只输出 对 或 错。\n对于填空题，直接输出答案文本。"
+  #   prompt: "请回答以下{type}：\n{value}\n{options}"

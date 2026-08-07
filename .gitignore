@@ -1,0 +1,24 @@
+# 敏感信息 - 绝不提交
+config.yml
+cred.txt
+*.token
+session/
+*.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# 打包产物
+build/
+dist/
+*.spec
+
+# 抓包与逆向档案
+*.har
+
+# 其他
+.DS_Store
+*.log
