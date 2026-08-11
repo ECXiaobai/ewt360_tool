@@ -360,7 +360,7 @@ def process_lesson(session, token, lesson, school_id, user_id, secret, session_i
 
     point_num = max(1, round(lesson["duration"] / 60))
     # 实测最快安全节奏 (2026-08-07): HEARTBEAT=120s 硬上限; 距上次成功心跳 ≥60s 才接受!
-    # 30s 连续被限流(轮2距31s失败), 真实稳定节奏 = 120s 上报 + 60s 等待 (2倍速)
+    # 30s 连续被限流(轮2距31s失败), 真实稳定节奏 = 120s 上报 + 60s 等待
     HEARTBEAT = 120000
     INTERVAL = 60000
     remaining = finish_time - play_time

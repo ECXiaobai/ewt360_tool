@@ -73,7 +73,7 @@ video:
   enable: true
   # 完成等待时间
   wait: 15
-  # 倍速
+  # 播放速度
   speed: 1.0
   # 视频播放汇报率 (没事别改)
   report_rate: 58
